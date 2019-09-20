@@ -23,4 +23,9 @@ data "vsphere_network" "network" {
 data "vsphere_datastore" "datastore" {
         name          = "Main Datastore"
         datacenter_id = "${data.vsphere_datacenter.dc.id}"
-}    
+} 
+
+data "vsphere_virtual_machine" "template" {
+        name          = "template-Centos7"
+        datacenter_id = "${data.vsphere_datacenter.dc.id}"
+}
