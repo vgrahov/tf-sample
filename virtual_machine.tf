@@ -33,5 +33,14 @@ resource "vsphere_virtual_machine" "vm" {
         }   
 
     }
+
+ provisioner "remote-exec" {
+
+        inline = [
+            "reboot"
+        ]
+    }   
 }
+
+
 
