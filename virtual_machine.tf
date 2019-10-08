@@ -1,9 +1,12 @@
+
+
 resource "vsphere_virtual_machine" "vm" {
-    name = "terraform-test"
+    name = "node${count.index+1}"
+    count= "4"
     resource_pool_id = "${data.vsphere_resource_pool.pool.id}"
     datastore_id     = "${data.vsphere_datastore.datastore.id}"
     num_cpus = 2
-    memory = 1024
+    memory = 4096
     guest_id = "centos7_64Guest"
         
     network_interface {
@@ -21,26 +24,33 @@ resource "vsphere_virtual_machine" "vm" {
         template_uuid = "${data.vsphere_virtual_machine.template.id}" 
         customize {
             linux_options {
-                host_name = "elk-terraform-test"
+                host_name = "node${count.index+1}"
                 domain = "kbspro.local"
             }
             network_interface {
-                ipv4_address = "172.30.111.202"
+                ipv4_address = "172.30.111.${201 + count.index}"
                 ipv4_netmask = "24"
+                dns_domain = "kbspro.local"
             }
             ipv4_gateway = "172.30.111.1"
+            dns_server_list = ["172.30.101.2"]
             
         }   
 
     }
 
- provisioner "remote-exec" {
-
-        inline = [
-            "reboot"
-        ]
-    }   
+    
 }
+
+resource "null_resource" "ansible_provisioning" {
+    provisioner "local-exec" {
+	    command = <<EOT
+        ansible-playbook -i ansible/debug_deploy ansible/main.yml -T 50
+        EOT
+    }
+    depends_on = [vsphere_virtual_machine.vm] 
+}  
+
 
 
 

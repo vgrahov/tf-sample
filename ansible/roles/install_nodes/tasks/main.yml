@@ -1,0 +1,133 @@
+---
+#- hosts: all
+#  become: true
+#  vars_files:
+#    - vars.yml
+#  strategy: free
+#  tasks:
+
+
+    - name: Disable SELinux
+      selinux:
+        state: disabled
+      register: selstate  
+    
+    - name: disable firewalld
+      service:
+          name: firewalld
+          enabled: no
+          state: stopped
+    
+    - name: Install iptables service
+      yum:
+        name: iptables-services
+        state: present     
+    
+    - name: Enable & start iptables
+      service:
+        name: iptables
+        enabled: yes
+        state: started         
+
+    - name: Setup hosts
+      template:
+        src: hosts.j2
+        dest: /etc/hosts
+        mode: 0644
+        owner: root
+        group: root    
+
+    - name: Allow new incoming SYN packets on TCP 
+      iptables:
+        flush: yes
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ item }}"
+        ctstate: NEW
+        syn: match
+        jump: ACCEPT
+        comment: Accept new SSH connections.
+      with_items:
+          - "22"
+          - "6443"
+          - "10250"
+          - "10255"  
+          - "6783"
+          - "30000:32767"
+      register: iptables    
+    
+    - name: save iptables
+      shell: iptables-save > /etc/sysconfig/iptables
+      when: "iptables.changed"  
+        
+    - name: Allow related and established connections
+      iptables:
+        chain: INPUT
+        ctstate: ESTABLISHED,RELATED
+        jump: ACCEPT
+    
+            
+    - name: Upd pkgs
+      yum:
+        name: '*'
+        state: latest
+        exclude: kernel*
+        
+        
+    - name: Install repo 
+      yum_repository:
+          name: kubernetes
+          enabled: yes
+          state: present
+          description: "kubernetes repo" 
+          gpgkey: 
+            - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+            - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+          baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+          gpgcheck: yes
+                
+    - name: Install tools
+      yum:  
+        name: 
+          - "{{ item }}"
+        state: latest
+      with_items: "{{ packages }}"  
+
+    - name: Dismount swap 
+      mount:
+        path: swap
+        state: absent
+        fstype: swap
+      register: swapstate  
+
+    - name: load module br_netfilter
+      modprobe:
+        name: br_netfilter 
+        state: present 
+          
+    
+    - name: setup cluster network
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: "1"
+        sysctl_set: yes
+        state: present 
+    
+    
+
+    
+    - name: Starts & enable services
+      service:
+        name: "{{ item }}"
+        state: started 
+        enabled: yes  
+      with_items: 
+        - kubelet
+        - docker  
+
+    - name: final Reboot   
+      reboot:
+        reboot_timeout: 120
+      when: swapstate.changed or selstate.changed
+
+#      kubeadm join kube-apiserver:6443 --discovery-token-unsafe-skip-ca-verification --token vh2akr.f7182fadp4qrxet9

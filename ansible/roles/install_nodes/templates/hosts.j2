@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+127.0.0.1 localhost
+{% for item in hostvars | sort %}
+{{ hostvars[item]['ansible_host'] }}    {{ item|lower }} {{ item|lower }}.{{ domain|lower }}
+{% endfor %}}
+
+#172.30.111.201 node1
+#172.30.111.202 node2
+#172.30.111.203 node3
+#172.30.111.204 node4
+
+
+

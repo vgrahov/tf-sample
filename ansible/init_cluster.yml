@@ -1,0 +1,5 @@
+---
+- hosts: node1
+  gather_facts: yes
+  roles: 
+    - init_cluster

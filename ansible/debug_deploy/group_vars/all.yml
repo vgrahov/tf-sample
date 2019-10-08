@@ -1,0 +1,16 @@
+---
+packages:
+  - nano 
+  - mc 
+  - docker
+  - tmux
+  - kubelet
+  - kubeadm
+  - kubectl
+  - kubernetes-cni
+domain: kbspro.local
+ansible_managed: "create by ansible"
+kubernetes_master_node: node1
+
+
+

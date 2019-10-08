@@ -16,7 +16,7 @@ data "vsphere_resource_pool" "pool" {
 }
 
 data "vsphere_network" "network" {
-  name          = "1801 ERC_DEBUG_EXT"
+  name          = "111 Office"
   datacenter_id = "${data.vsphere_datacenter.dc.id}"
 }
 
