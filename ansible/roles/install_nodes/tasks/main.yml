@@ -125,19 +125,52 @@
         - kubelet
         - docker  
     
+    - name: final Reboot   
+      reboot:
+        reboot_timeout: 120
+    
+    
     - name: set up master node and init cluster   
       include: master_node.yml
       when: inventory_hostname == kubernetes_master_node  
 
-    - name: final Reboot   
-      reboot:
-        reboot_timeout: 120
-      when: swapstate.changed or selstate.changed
+
+    - name: set join command
+      command: kubeadm token create --print-join-command
+      changed_when: false
+      register: kubernetes_join_command_result
+      when: inventory_hostname == kubernetes_master_node 
+
+    
+
+    - name: set join command globally
+      set_fact:
+        kubernetes_join_command: "{{ kubernetes_join_command_result.stdout }}"
+      when: 
+        - kubernetes_join_command_result.stdout is defined
+        - inventory_hostname == kubernetes_master_node
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      with_items: "{{ groups['all'] }}"
+
+
+
+    - name: DEBUG 
+      debug:
+        var: "{{ item }}"
+      with_items:
+        - inventory_hostname      
+        - kubernetes_master_node
+        - kubernetes_join_command  
+
+
 
     - name: join node
       shell: > 
         {{ kubernetes_join_command}}
         creates=/etc/kubernetes/kubelet.conf
-      when: inventory_hostname != kubernetes_master_node
+      when: 
+        - inventory_hostname != kubernetes_master_node
+        - kubernetes_join_command is defined
 
-#      kubeadm join kube-apiserver:6443 --discovery-token-unsafe-skip-ca-verification --token vh2akr.f7182fadp4qrxet9
+#      kubeadm join kube-apiserver:6443 --discovery-token-unsafe-skip-ca-verification

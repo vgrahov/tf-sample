@@ -45,7 +45,7 @@ resource "vsphere_virtual_machine" "vm" {
 resource "null_resource" "ansible_provisioning" {
     provisioner "local-exec" {
 	    command = <<EOT
-        ansible-playbook -i ansible/debug_deploy ansible/main.yml -T 50
+        ansible-playbook -i ansible/debug_deploy ansible/main.yml -T 100
         EOT
     }
     depends_on = [vsphere_virtual_machine.vm] 

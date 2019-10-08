@@ -8,15 +8,14 @@
 - name: Initialaize master node
   command: >
     kubeadm init
-    {{ kubeadm_init_opts }}
   register: kubeadm_init
   failed_when: false
   when: not kubernetes_init_state.stat.exists
 
-- name: Print  init output
+- name: Print init output
   debug:
       var: kubeadm_init.stdout
-      verbosity: 2
+      verbosity: 0
   when: not kubernetes_init_state.stat.exists
 
 - name: check ./kube directory  
@@ -34,16 +33,3 @@
   shell: export kubever=$(kubectl version | base64 | tr -d '\n'); 
          kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever" 
          
-- name: set join command
-  command: kubeadm token create --print-join-command
-  changed_when: false
-  register: kubernetes_join_command_result
-
-- name: set join command globally
-  set_fact:
-    kuberntes_join_command: "{{ kubernetes_join_command_result.stdout }}" 
-  when: kubernetes_join_command_result.stdout is defined
-#  delegate_to: "{{ item }}"
-#  delegate_facts: true
-#  with_items: "{{ groups['all'] }}"
-  
