@@ -1,5 +1,0 @@
-[all]
-node1 ansible_host=172.30.111.201 ansible_user=root ansible_ssh_pass=Ghfdbkmysq30Gfhjkm!
-node2 ansible_host=172.30.111.202 ansible_user=root ansible_ssh_pass=Ghfdbkmysq30Gfhjkm!
-node3 ansible_host=172.30.111.203 ansible_user=root ansible_ssh_pass=Ghfdbkmysq30Gfhjkm!
-node4 ansible_host=172.30.111.204 ansible_user=root ansible_ssh_pass=Ghfdbkmysq30Gfhjkm!

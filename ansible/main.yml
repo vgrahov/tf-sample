@@ -1,5 +1,2 @@
 - hosts: all
 - import_playbook: install_nodes.yml
-- import_playbook: init_cluster.yml
-- import_playbook: join_nodes.yml 
-    

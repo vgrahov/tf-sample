@@ -124,10 +124,20 @@
       with_items: 
         - kubelet
         - docker  
+    
+    - name: set up master node and init cluster   
+      include: master_node.yml
+      when: inventory_hostname == kubernetes_master_node  
 
     - name: final Reboot   
       reboot:
         reboot_timeout: 120
       when: swapstate.changed or selstate.changed
+
+    - name: join node
+      shell: > 
+        {{ kubernetes_join_command}}
+        creates=/etc/kubernetes/kubelet.conf
+      when: inventory_hostname != kubernetes_master_node
 
 #      kubeadm join kube-apiserver:6443 --discovery-token-unsafe-skip-ca-verification --token vh2akr.f7182fadp4qrxet9
